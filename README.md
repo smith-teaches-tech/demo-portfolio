@@ -9,6 +9,7 @@ The demo portfolio for **Building with AI**. It's set up the same way as yours: 
 | Folder | Build | What it does |
 |---|---|---|
 | `book-picks/` | Build 1 · Memory | Anyone can recommend a book and say why. Everyone sees every pick. |
+| `lesson-locker/` | Build 2 · Identity | Teachers sign in, upload lessons, and choose who can see each one: nobody, specific teachers, or everyone. |
 
 ## How each project is organized
 
