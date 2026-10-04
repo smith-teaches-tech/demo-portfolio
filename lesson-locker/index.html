@@ -81,7 +81,9 @@
   .chip button{background:none;color:var(--dim);padding:0 6px;font-size:16px;line-height:1}
   .chip button:hover{color:var(--err);background:none}
   .empty{text-align:center;color:var(--dim);padding:28px;border:1px dashed var(--line);border-radius:12px}
-  .setup{border-left:4px solid var(--err)}
+  .nodb{background:#fff4d6;border:1px solid #f0d58a;border-radius:10px;padding:12px 16px;
+    margin-bottom:18px;font-size:14px}
+  .nodb b{color:#8a6100}
   code{background:#eef2f6;padding:1px 6px;border-radius:4px;font-size:14px}
 </style>
 </head>
@@ -96,11 +98,11 @@
     </div>
   </div>
 
-  <!-- SCREEN 0: not connected yet -->
-  <section class="card setup" id="setupScreen" hidden>
-    <h2>Not connected to Supabase yet</h2>
-    <p class="lede">Open <code>config.js</code> and paste in your Supabase project URL and publishable key. Then save and refresh.</p>
-  </section>
+  <!-- Shown only when config.js isn't filled in yet -->
+  <div class="nodb" id="noDbBanner" hidden>
+    <b>No database yet.</b> Click through everything: sign up, pick a username, upload, share. Nothing is really saved, so a refresh clears it all.
+    Teachers you can share with: <code>ms_ahmed</code>, <code>mr_lee</code>, <code>ms_garcia</code>.
+  </div>
 
   <!-- SCREEN 1: sign in -->
   <section class="card" id="signInScreen" hidden>

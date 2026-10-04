@@ -54,7 +54,7 @@ Teachers keep their lesson files (PDF, Word or PowerPoint) in one place, with a 
 
 ## Code files
 - index.html: the page and its styles (HTML and CSS). Loads config.js, then app.js.
-- app.js: everything the app does (JavaScript).
+- app.js: everything the app does (JavaScript). Part 1 (Data) holds every Supabase call, with pretend data used until config.js is filled in. Part 2 (The page) runs the screens and buttons.
 - config.js: only the Supabase URL and the publishable key.
 
 ## Rules for every chat
@@ -195,7 +195,7 @@ create policy "Open files you are allowed to see" on storage.objects
 ```
 
 ## Where we are right now
-All three code files are written. Supabase isn't set up yet, so the app shows "Not connected to Supabase yet."
+All three code files are written. Supabase isn't set up yet, so the app runs on pretend data: you can click through every screen (sign up, pick a username, upload, share, open files), but nothing is saved and a refresh clears it. Other pretend teachers to share with: ms_ahmed, mr_lee, ms_garcia.
 
 ## NOT doing, on purpose
 - Forgot-password and email confirmation (free Supabase email only reaches the owner)
@@ -209,3 +209,4 @@ Set up Supabase (the six steps above), then test with three accounts: one privat
 
 ## Change log
 - 2026-10-04: Planned and built all three files. Supabase not connected yet.
+- 2026-10-04: Added pretend data so the app can be clicked through before Supabase is connected.
