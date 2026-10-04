@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Book Picks</title>
+<style>
+  :root{
+    --bg:#fbf7f0; --card:#ffffff; --ink:#2b2622; --dim:#7a7068;
+    --line:#e8dfd2; --accent:#c4572e; --accent-dark:#9c4122; --ok:#3f7d4e;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:16px/1.6 Georgia,"Times New Roman",serif}
+  .wrap{max-width:720px;margin:0 auto;padding:32px 18px 60px}
+  h1{font-size:40px;margin:0;letter-spacing:-1px}
+  .lede{color:var(--dim);margin:4px 0 24px;font-style:italic}
+  .banner{background:#fff4d6;border:1px solid #f0d58a;border-radius:10px;
+    padding:12px 16px;margin-bottom:20px;font-family:system-ui,sans-serif;font-size:14px}
+  .banner b{color:#8a6100}
+  form{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:28px}
+  form h2{margin:0 0 12px;font-size:20px}
+  label{display:block;font-family:system-ui,sans-serif;font-size:13px;font-weight:600;
+    color:var(--dim);margin:12px 0 4px;text-transform:uppercase;letter-spacing:.5px}
+  input,textarea{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;
+    font:16px Georgia,serif;background:#fffdf9}
+  textarea{min-height:70px;resize:vertical}
+  input:focus,textarea:focus{outline:2px solid var(--accent);border-color:transparent}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media (max-width:560px){ .row{grid-template-columns:1fr} }
+  button{margin-top:16px;background:var(--accent);color:#fff;border:none;border-radius:8px;
+    padding:11px 22px;font:600 15px system-ui,sans-serif;cursor:pointer}
+  button:hover{background:var(--accent-dark)}
+  button:disabled{opacity:.5;cursor:default}
+  .msg{font-family:system-ui,sans-serif;font-size:14px;margin-top:10px;min-height:20px}
+  .msg.err{color:var(--accent-dark)}
+  .msg.ok{color:var(--ok)}
+  .count{font-family:system-ui,sans-serif;font-size:13px;color:var(--dim);margin:0 0 10px}
+  .pick{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--accent);
+    border-radius:10px;padding:14px 16px;margin-bottom:12px}
+  .pick h3{margin:0;font-size:19px}
+  .pick .by{color:var(--dim);font-size:14px;margin:2px 0 6px}
+  .pick .why{margin:0}
+  .pick .who{font-family:system-ui,sans-serif;font-size:12.5px;color:var(--dim);margin-top:8px}
+  .empty{text-align:center;color:var(--dim);padding:30px;border:1px dashed var(--line);border-radius:10px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>Book Picks</h1>
+  <p class="lede">One book you think everyone should read, and why.</p>
+
+  <div class="banner" id="banner" hidden>
+    <b>Not connected to Supabase yet.</b> Picks are only stored in this browser tab, so they disappear when you refresh.
+  </div>
+
+  <form id="pickForm">
+    <h2>Add a pick</h2>
+    <div class="row">
+      <div>
+        <label for="title">Book title</label>
+        <input id="title" maxlength="100" required>
+      </div>
+      <div>
+        <label for="author">Author</label>
+        <input id="author" maxlength="80" required>
+      </div>
+    </div>
+    <label for="why">Why should people read it?</label>
+    <textarea id="why" maxlength="200" required></textarea>
+    <label for="pickedBy">Your first name</label>
+    <input id="pickedBy" maxlength="30" required>
+    <button type="submit" id="addBtn">Add my pick</button>
+    <div class="msg" id="msg"></div>
+  </form>
+
+  <p class="count" id="count"></p>
+  <div id="picks"></div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  // ---- where this app points ----
+  const SUPABASE_URL = "PASTE YOUR PROJECT URL";
+  const SUPABASE_KEY = "PASTE YOUR PUBLISHABLE KEY";
+
+  // ---- connect, or run in demo mode ----
+  const connected = SUPABASE_URL.startsWith("https://");
+  const db = connected ? supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+
+  let demoPicks = [
+    { title: "The Giver", author: "Lois Lowry", why: "Short, strange, and you will argue about the ending for a week.", picked_by: "Mr. Smith", added_at: "2026-10-01T09:00:00Z" },
+    { title: "Hatchet", author: "Gary Paulsen", why: "A kid, a plane crash, and a hatchet. You can't put it down.", picked_by: "Mr. Smith", added_at: "2026-10-01T08:00:00Z" }
+  ];
+
+  if (!connected) document.getElementById("banner").hidden = false;
+
+  // ---- read picks ----
+  async function loadPicks() {
+    if (!connected) return demoPicks;
+    const { data, error } = await db
+      .from("book_picks")
+      .select("*")
+      .order("added_at", { ascending: false });
+    if (error) {
+      showMsg("Couldn't load picks. Check your Supabase URL, key and policies.", true);
+      return [];
+    }
+    return data;
+  }
+
+  // ---- save a pick ----
+  async function savePick(pick) {
+    if (!connected) {
+      demoPicks.unshift({ ...pick, added_at: new Date().toISOString() });
+      return null;
+    }
+    const { error } = await db.from("book_picks").insert(pick);
+    return error;
+  }
+
+  // ---- show picks on the page ----
+  function escapeHTML(text) {
+    return String(text).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+
+  async function render() {
+    const picks = await loadPicks();
+    const box = document.getElementById("picks");
+    document.getElementById("count").textContent =
+      picks.length === 1 ? "1 pick so far" : picks.length + " picks so far";
+    if (picks.length === 0) {
+      box.innerHTML = '<div class="empty">No picks yet. Be the first.</div>';
+      return;
+    }
+    box.innerHTML = picks.map(function (p) {
+      return '<div class="pick">' +
+        '<h3>' + escapeHTML(p.title) + '</h3>' +
+        '<p class="by">by ' + escapeHTML(p.author) + '</p>' +
+        '<p class="why">' + escapeHTML(p.why) + '</p>' +
+        '<div class="who">Picked by ' + escapeHTML(p.picked_by) + '</div>' +
+      '</div>';
+    }).join("");
+  }
+
+  function showMsg(text, isError) {
+    const m = document.getElementById("msg");
+    m.textContent = text;
+    m.className = "msg " + (isError ? "err" : "ok");
+  }
+
+  // ---- the form ----
+  document.getElementById("pickForm").addEventListener("submit", async function (e) {
+    e.preventDefault();
+    const pick = {
+      title: document.getElementById("title").value.trim(),
+      author: document.getElementById("author").value.trim(),
+      why: document.getElementById("why").value.trim(),
+      picked_by: document.getElementById("pickedBy").value.trim()
+    };
+    if (!pick.title || !pick.author || !pick.why || !pick.picked_by) {
+      showMsg("Please fill in every box.", true);
+      return;
+    }
+    const btn = document.getElementById("addBtn");
+    btn.disabled = true;
+    const error = await savePick(pick);
+    btn.disabled = false;
+    if (error) {
+      showMsg("That didn't save. Try again.", true);
+      return;
+    }
+    this.reset();
+    showMsg("Added. Thanks!", false);
+    render();
+  });
+
+  render();
+</script>
+</body>
+</html>
